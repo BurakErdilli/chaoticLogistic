@@ -16,10 +16,10 @@ slider_x = 100
 slider_y = height - 100
 slider_width = width - 200
 slider_height = 20
-initial_population = 0.4  # Initial population value controlled by the slider
+initial_population = 0.2  # Initial population value controlled by the slider
 slider_value = initial_population
-maxGrowthRate = 4
-generations = 200
+maxGrowthRate = 3.99
+generations = 400
 resolution = 0.01
 
 # Colors
