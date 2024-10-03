@@ -1,61 +1,60 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <complex.h>
-#include "stb_image_write.h"
 
-#define WIDTH 2000
-#define HEIGHT 2000
-#define MAX_ITER (HEIGHT / 5)
+// Function to compute Mandelbrot set and store it in a file
+void mandelbrot(int width, int height, double x_min, double x_max, double y_min, double y_max, const char *output_filename) {
+    int max_iter = height / 5;
+    FILE *file = fopen(output_filename, "w");
 
-// Function to generate the Mandelbrot set
-void mandelbrot(unsigned char *image, double x_min, double x_max, double y_min, double y_max) {
-    for (int y = 0; y < HEIGHT; ++y) {
-        for (int x = 0; x < WIDTH; ++x) {
-            double complex c = x_min + (x / (double)WIDTH) * (x_max - x_min) +
-                                (y_min + (y / (double)HEIGHT) * (y_max - y_min)) * I;
-            double complex z = 0.0 + 0.0 * I;
-            int n;
-
-            for (n = 0; n < MAX_ITER; ++n) {
-                if (cabs(z) >= 2.0) break;  // Escape condition
-                z = z * z + c;
-            }
-
-            // Color the pixel based on the number of iterations
-            int color = (n == MAX_ITER) ? 0 : (255 * n / MAX_ITER);
-            image[(y * WIDTH + x) * 3 + 0] = color; // Red
-            image[(y * WIDTH + x) * 3 + 1] = 0;     // Green
-            image[(y * WIDTH + x) * 3 + 2] = 255 - color; // Blue
-        }
-        if (y % 100 == 0) {
-            printf("Progress: %.2f%%\n", (y / (double)HEIGHT) * 100);
-        }
+    if (!file) {
+        printf("Error: Could not open output file.\n");
+        exit(1);
     }
+
+    double x_step = (x_max - x_min) / width;
+    double y_step = (y_max - y_min) / height;
+
+    for (int i = 0; i < height; i++) {
+        double y = y_min + i * y_step;
+        for (int j = 0; j < width; j++) {
+            double x = x_min + j * x_step;
+
+            // Initialize z and c as complex numbers with real and imaginary parts
+            double real_c = x;
+            double imag_c = y;
+            double real_z = 0.0;
+            double imag_z = 0.0;
+
+            int iter = 0;
+            while ((real_z * real_z + imag_z * imag_z) <= 4.0 && iter < max_iter) {
+                // Compute z^2 + c (real and imaginary parts)
+                double real_z_new = real_z * real_z - imag_z * imag_z + real_c;
+                double imag_z_new = 2 * real_z * imag_z + imag_c;
+
+                real_z = real_z_new;
+                imag_z = imag_z_new;
+                iter++;
+            }
+            // Store the number of iterations for each pixel
+            fprintf(file, "%d ", iter);
+        }
+        fprintf(file, "\n");
+    }
+    fclose(file);
+    printf("Mandelbrot set calculation finished and saved to %s\n", output_filename);
 }
 
 int main() {
-    unsigned char *image = (unsigned char *)malloc(WIDTH * HEIGHT * 3);
-    if (!image) {
-        fprintf(stderr, "Memory allocation failed\n");
-        return 1;
-    }
+    // Parameters for the Mandelbrot set
+    int width = 2000, height = 2000;
+    double x_min = -2.0, x_max = 1.0;
+    double y_min = -1.5, y_max = 1.5;
 
-    // Define the range for the Mandelbrot set
-    double x_min = -2.0;
-    double x_max = 1.0;
-    double y_min = -1.5;
-    double y_max = 1.5;
+    // File to store the results
+    const char *output_filename = "mandelbrot_data.txt";
 
-    // Generate the Mandelbrot set
-    mandelbrot(image, x_min, x_max, y_min, y_max);
+    // Calculate the Mandelbrot set and store it
+    mandelbrot(width, height, x_min, x_max, y_min, y_max, output_filename);
 
-    // Save the image as PNG
-    stbi_write_png("mandelbrot_set.png", WIDTH, HEIGHT, 3, image, WIDTH * 3);
-
-    // Free allocated memory
-    free(image);
-
-    printf("Mandelbrot set generated and saved as 'mandelbrot_set.png'.\n");
     return 0;
 }
-

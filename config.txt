@@ -1,0 +1,7 @@
+Width: 8000
+Height: 8000
+X_min: -2.0
+X_max: 1.0
+Y_min: -1.5
+Y_max: 1.5
+
